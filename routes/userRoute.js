@@ -3,6 +3,8 @@ const router = express.Router();
 const users = require('../models/userModel')
 const bcrypt = require('bcrypt');
 const books = require('../models/BookModel')
+const jwt=require("jsonwebtoken")
+require('dotenv').config();
 
 router.post('/register', async (req,res) => {
 	try {
@@ -10,7 +12,7 @@ router.post('/register', async (req,res) => {
 		const finduser = await users.findOne({email:email})
 		if(finduser!==null){
 			return res.status(400).json({message:"Email Already exists"})
-		}
+		}       
 		if(!name || !email || !password){
 			return res.status(400).json({message:"All fields are required"})
 		}
@@ -32,6 +34,20 @@ router.post('/register', async (req,res) => {
 	}
 })
 
+
+router.post('/signout',async(req,res)=>{
+    try{
+        res.clearCookie('token', {
+        httpOnly: true,
+        sameSite: 'Lax',
+        secure: false, 
+        });
+        res.status(200).json({ message: 'Logged out successfully' });
+    }catch(err){
+        res.send(err);
+    }
+})
+
 router.post('/signin', async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -50,8 +66,16 @@ router.post('/signin', async (req, res) => {
         if (!isPasswordValid) {
             return res.status(400).json({ message: "Invalid password" });
         }
+        const token=jwt.sign({email:email,role:finduser.role},process.env.secret_key,{expiresIn:"1h"})
 
-        res.status(200).json({ message: "Login successful", user: finduser });
+        console.log(token);
+
+        res.cookie("token",token,{
+            httpOnly: true,
+            secure: true, 
+            sameSite: 'none',//none - allows cross-site requests,use none in production
+            maxAge: 3600000 //1hr
+        }).status(200).json({message:"Login successfull",user:finduser});
 
     } catch (error) {
         console.error(error);

@@ -7,17 +7,19 @@ const users = require('./routes/userRoute')
 const app = express()
 const dbConn = require('./config/db')
 const Books = require('./routes/BookRoute')
-
+const cookieparser=require("cookie-parser")
 
 const port = process.env.PORT || 3000
 
 app.use(express.json())
 // app.use(cors())
 
+app.use(cookieparser())
+
 app.use(cors({
     origin:['http://localhost:5173','https://bookart.vercel.app'],
     methods: ['GET','POST','PUT','DELETE'],
-    Credentials:true
+    credentials:true
 }));
 
 
