@@ -88,7 +88,7 @@ router.post('/signin', async (req, res) => {
 
         res.cookie("token",token,{
             httpOnly: true,
-            secure: true, //"Only send this cookie over HTTPS connections."
+            secure: process.env.dev!="dev", //"true means : Only send this cookie over HTTPS connections."
             sameSite: 'none',  //if samesite none means cross-origin is enabled ,so it is prone to csrf attack.Protect it by enabling cors for a specified domains only
             maxAge: 3600000 
         }).status(200).json({message:"Login successfull",user:finduser});
