@@ -17,7 +17,7 @@ router.get('/',auth,async(req,res) => {
 })
 
 
-router.post('/add',async(req,res) => {
+router.post('/add',auth,async(req,res) => {
     try {
         const {title,author,description,price,imageUrl,overview,language,genre,publisher,_id} = req.body 
         if(!title || !author || !description  || !price || !imageUrl || !overview || !language || !genre || !publisher){
@@ -32,7 +32,7 @@ router.post('/add',async(req,res) => {
 })
 
 
-router.put('/edit/:id',async(req,res) => {
+router.put('/edit/:id',auth,async(req,res) => {
     try {
         const id = req.params.id;
         const currentrecord = await Books.findById(id)
@@ -47,7 +47,7 @@ router.put('/edit/:id',async(req,res) => {
 })
 
 
-router.delete('/delete/:id',async(req,res) => {
+router.delete('/delete/:id',auth,async(req,res) => {
     try {
         const id = req.params.id;
         const currentrecord = await Books.findById(id);
@@ -60,7 +60,6 @@ router.delete('/delete/:id',async(req,res) => {
         res.status(500).json(error)
     }
 })
-
 
 
 

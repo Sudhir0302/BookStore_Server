@@ -3,7 +3,8 @@ const router = express.Router();
 const users = require('../models/userModel')
 const bcrypt = require('bcrypt');
 const books = require('../models/BookModel')
-const jwt=require("jsonwebtoken")
+const jwt=require("jsonwebtoken");
+const auth = require('../middleware/auth');
 require('dotenv').config();
 
 router.post('/register', async (req,res) => {
@@ -32,6 +33,21 @@ router.post('/register', async (req,res) => {
 		console.log(error)
 		res.status(500).json({message:"Internal server error"})
 	}
+})
+
+
+router.post('/check',async(req,res)=>{
+    try {
+        const decode=jwt.verify(req.cookies.token,process.env.secret_key);
+        // console.log(decode)
+        const finduser=await users.findOne({email:decode.email})
+        if(!finduser){
+            return res.status(404).json({msg:"user not foun"})
+        }
+        res.status(200).json({user:finduser})
+    } catch (error) {
+        res.status(401).send("failed")
+    }
 })
 
 
@@ -68,13 +84,13 @@ router.post('/signin', async (req, res) => {
         }
         const token=jwt.sign({email:email,role:finduser.role},process.env.secret_key,{expiresIn:"1h"})
 
-        console.log(token);
+        // console.log(token);
 
         res.cookie("token",token,{
             httpOnly: true,
-            secure: true, 
-            sameSite: 'none',//none - allows cross-site requests,use none in production
-            maxAge: 3600000 //1hr
+            secure: true, //"Only send this cookie over HTTPS connections."
+            sameSite: 'none',  //if samesite none means cross-origin is enabled ,so it is prone to csrf attack.Protect it by enabling cors for a specified domains only
+            maxAge: 3600000 
         }).status(200).json({message:"Login successfull",user:finduser});
 
     } catch (error) {
@@ -84,7 +100,7 @@ router.post('/signin', async (req, res) => {
 });
 
 
-router.put('/addcart', async (req, res) => {
+router.put('/addcart', auth,async (req, res) => {
     const { userId, bookId } = req.body;
 
     try {
@@ -116,7 +132,7 @@ router.put('/addcart', async (req, res) => {
     }
 });
 
-router.delete('/deletecart', async (req, res) => {
+router.delete('/deletecart', auth,async (req, res) => {
     const { userId, index } = req.body; 
 
     try {
@@ -139,7 +155,7 @@ router.delete('/deletecart', async (req, res) => {
 });
 
 
-router.get('/getcart/:userid',async(req,res) => {
+router.get('/getcart/:userid',auth,async(req,res) => {
     try {
         const {userid} = req.params;
         const user = await users.findById(userid);
@@ -152,13 +168,6 @@ router.get('/getcart/:userid',async(req,res) => {
         res.status(500).json({ message: 'Internal server error', error });
     }
 })
-
-
-
-
-
-
-
 
 
 module.exports = router

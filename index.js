@@ -30,5 +30,5 @@ app.use('/books',Books)
 
 
 app.listen(port, () => {
-    console.log(`Server running in : ${port}`)
+    console.log(`Server running on ${port}`)
 })
